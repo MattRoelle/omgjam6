@@ -1,5 +1,5 @@
 import C from "../constants";
-import { SHAPES } from "./shape";
+import { SHAPES, randomShape } from "./shape";
 import { GAME_STATES, DIRECTIONS } from "./enums";
 
 class GameBoard {
@@ -16,23 +16,47 @@ class GameBoard {
             this.rows.push(row);
         }
 
+        this.wordsPlayed = 0;
+
         this.getNextShape();
+        this.initBoard();
     }
 
     getNextShape() {
-        this.shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+        this.shape = randomShape();
         this.word = [];
         this.cursorPos = 0;
         for(let i = 0; i < this.shape.len; i++) {
             this.word.push(" ");
         }
+
+        for(let x = 0; x < C.BOARD_SIZE; x++) {
+            for(let y = 0; y < C.BOARD_SIZE; y++) {
+                const cell = this.getCell(x, y);
+                cell.cursor = false;
+            }
+        }
+
         this.shapeOffset = {
             x: 0,
             y: 0
         };
     }
+
+    initBoard() {
+        console.log(this.shape.len);
+        let startingWord = this.dictionary.sample(this.shape.len);
+
+        this.changeState(GAME_STATES.TYPING);
+        for(let i = 0; i < startingWord.length; i++) {
+            this.type(startingWord[i]);
+        }
+
+        this.submitWord();
+    }
     
     getCell(x, y) {
+        if (x < 0 || y < 0 || x >= C.BOARD_SIZE || y >= C.BOARD_SIZE) return { x, y, letter: "" };
         return this.rows[y][x];
     }
 
@@ -63,8 +87,6 @@ class GameBoard {
     }
 
     changeState(newState) {
-        this.state = newState;
-
         if (newState === GAME_STATES.TYPING) {
             this.reservedLetters = [];
             for(let i = 0; i < this.shape.len; i++) {
@@ -77,15 +99,42 @@ class GameBoard {
                     this.reservedLetters.push(false);
                 }
             }
-            console.log(this.reservedLetters);
-            this.ffwdCursor();
+            if (this.isValidShapePlacement()) {
+                this.state = newState;
+                this.ffwdCursor();
+                this.updateBoard();
+            }
+        } else {
+            this.state = newState;
         }
+    }
+
+    isValidShapePlacement() {
+        if (this.wordsPlayed === 0 || this.reservedLetters.indexOf(true) > -1) {
+            return true;
+        }
+
+        for(let i = 0; i < this.shape.len; i++) {
+            const cellPos = this.shape.getCellPos(i);
+            const cx = cellPos.x - this.shapeOffset.x;
+            const cy = cellPos.y - this.shapeOffset.y;
+            if (
+                !!this.getCell(cx - 1, cy).letter ||
+                !!this.getCell(cx + 1, cy).letter ||
+                !!this.getCell(cx, cy - 1).letter ||
+                !!this.getCell(cx, cy + 1).letter
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     type(letter) {
         if (this.state != GAME_STATES.TYPING) return;
 
-        if (letter === "Enter" || letter === " " && this.cursorPos === this.shape.len) {
+        if ((letter === "Enter" || letter === " ") && this.cursorPos === this.shape.len) {
             this.submitWord();
             return;
         }
@@ -96,7 +145,7 @@ class GameBoard {
                 if (this.reservedLetters[i]) continue;
                 this.word[i] = " ";
             }
-            this.state = GAME_STATES.POSITIONING;
+            this.changeState(GAME_STATES.POSITIONING);
             this.updateBoard();
             return;
         }
@@ -122,7 +171,6 @@ class GameBoard {
         this.word[this.cursorPos] = letter;
         this.cursorPos++;
         this.ffwdCursor();
-
         this.updateBoard();
     }
 
@@ -132,8 +180,50 @@ class GameBoard {
         }
     }
 
+    validateCell(x, y, direction) {
+        const cell = this.getCell(x, y);
+        let nextCell = null;
+        let word =  "";
+
+        if (!cell.letter) return true;
+
+        if (direction === DIRECTIONS.HORIZONTAL) {
+            const lcell = this.getCell(x - 1, y);
+            if (!!lcell.letter) return true;
+
+            let nextX = x;
+            while(!!(nextCell = this.getCell(nextX++, y)).letter) {
+                word += nextCell.letter;
+            }
+        }
+
+        if (direction === DIRECTIONS.VERTICAL) {
+            const ucell = this.getCell(x, y - 1);
+            if (!!ucell.letter) return true;
+
+            let nextY = y;
+            while(!!(nextCell = this.getCell(x, nextY++)).letter) {
+                word += nextCell.letter;
+            }
+        }
+
+        return word.length == 1 || this.dictionary.isValidWord(word);
+    }
+
+    validateBoard() {
+        for(let y = 0; y < C.BOARD_SIZE; y++) {
+            for(let x = 0; x < C.BOARD_SIZE; x++) {
+                if (!this.validateCell(x, y, DIRECTIONS.HORIZONTAL) || !this.validateCell(x, y, DIRECTIONS.VERTICAL)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     submitWord() {
-        if (this.dictionary.isValidWord(this.word.join(""))) {
+        if (this.validateBoard()) {
+            this.wordsPlayed++;
             this.getNextShape();
             this.changeState(GAME_STATES.POSITIONING);
         }
@@ -144,6 +234,9 @@ class GameBoard {
             const cellPos = this.shape.getCellPos(i);
             const cell = this.getCell(cellPos.x - this.shapeOffset.x, cellPos.y - this.shapeOffset.y);
             cell.letter = this.word[i].trim();
+            if (i == this.cursorPos) {
+                cell.cursor = true;
+            }
         }
     }
 }

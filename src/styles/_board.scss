@@ -43,12 +43,33 @@ $letter-highlight-color: darken($letter-background, 7%);
 
                 background: $cell-color;
                 transition: all 100ms ease-in-out;
+
                 &.under-shape {
                     background: darken($cell-color, 20%);
                     p {
                         background: darken($letter-highlight-color, 8%);
                         &:before {
                             background: darken($letter-background, 8%);
+                        }
+                    }
+                }
+
+                &.typing {
+                    background: lighten($cell-color, 6%);
+                    p {
+                        background: lighten($letter-highlight-color, 4%);
+                        &:before {
+                            background: lighten($letter-background, 4%);
+                        }
+                    }
+                }
+
+                &.cursor {
+                    background: blue;
+                    p {
+                        background: lighten($letter-highlight-color, 4%);
+                        &:before {
+                            background: lighten($letter-background, 4%);
                         }
                     }
                 }
