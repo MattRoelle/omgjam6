@@ -1,0 +1,23 @@
+{
+  "name": "omgjam6",
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack-dev-server --open"
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^2.6.10"
+  },
+  "devDependencies": {
+    "css-loader": "^3.3.0",
+    "node-sass": "^4.13.0",
+    "raw-loader": "^4.0.0",
+    "sass-loader": "^8.0.0",
+    "style-loader": "^1.0.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
+  }
+}

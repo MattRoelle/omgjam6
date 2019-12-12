@@ -1,0 +1,152 @@
+$cell-shadow-size: 0.06;
+$board-size: 10;
+$cell-size: (70vh/$board-size);
+$cell-border-radius: 0.21;
+
+$cell-shadow-color: #bbb;
+$board-color: #eee;
+$cell-color: #c8c8c8;
+
+$letter-background: #aa99ee;
+$letter-highlight-size: 0.18;
+$letter-highlight-color: darken($letter-background, 7%);
+
+.game-board {
+    background: $board-color;
+    overflow: hidden;
+    width: $cell-size*$board-size;
+    height: $cell-size*$board-size;
+    margin: 15vh auto;
+    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
+    border: $cell-size*1px/4px solid white;
+    border-radius: $cell-size*0.2;
+    position: relative;
+    box-sizing: content-box;
+    .game-grid {
+        position: relative;
+        .game-grid-row {
+            position: absolute;
+            left: 0;
+            &:after {
+                content: " ";
+                display: block;
+                clear: both;
+            }
+            .game-grid-cell {
+                position: absolute;
+                border-radius: $cell-size*$cell-border-radius;
+                top: 0;
+                width: $cell-size;
+                height: $cell-size;
+                border: 3px solid $board-color;
+                overflow: hidden;
+
+                background: $cell-color;
+                transition: all 100ms ease-in-out;
+                &.under-shape {
+                    background: darken($cell-color, 20%);
+                    p {
+                        background: darken($letter-highlight-color, 8%);
+                        &:before {
+                            background: darken($letter-background, 8%);
+                        }
+                    }
+                }
+
+                &:before {
+                    content: " ";
+                    display: block;
+                    position: absolute;
+                    width: 100%;
+                    height: $cell-size*$cell-shadow-size;
+                    background: $cell-shadow-color;
+                }
+
+                &:after {
+                    content: " ";
+                    display: block;
+                    position: absolute;
+                    width: $cell-size*$cell-shadow-size;
+                    height: 100%;
+                    background: $cell-shadow-color;
+                }
+
+                p {
+                    color: black;
+                    background: $letter-highlight-color;
+                    font-size: $cell-size*3/4;
+                    text-align: center;
+                    position: relative;
+                    width: $cell-size;
+                    height: $cell-size;
+                    padding-right: $cell-size*0.1;
+                    line-height: $cell-size*0.77;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    z-index: 5;
+                    border-radius: $cell-size*$cell-border-radius;
+                    overflow: hidden;
+
+                    transform: scale(0);
+                    transition: transform 100ms ease-in-out;
+                    &.visible {
+                        transform: scale(1);
+                    }
+
+                    span {
+                        position: relative;
+                        z-index:  50;
+                        top: -$cell-size*0.05;
+                    }
+
+                    &:before {
+                        content: " ";
+                        display: block;
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        top: -$cell-size*$letter-highlight-size;
+                        left: -$cell-size*$letter-highlight-size;
+                        border-radius: $cell-size*0.1;
+                        background: $letter-background;
+                    }
+
+                    &:after {
+                        content: " ";
+                        display: block;
+                        position: absolute;
+                        width: $cell-size*0.2;
+                        height: $cell-size*0.4;
+                        transform: rotate(45deg);
+                        top: -$cell-size*0.2;
+                        left: 0;
+                        z-index: 50;
+                        border-radius: 100%;
+                        background: rgba(255, 255, 255, 0.2);
+                    }
+                }
+            }
+        }
+
+        @for $x from 0 through $board-size {
+            @for $y from 0 through $board-size{
+                .game-grid-row:nth-of-type(#{$y + 1}) {
+                    top: $cell-size * $y;
+                    .game-grid-cell:nth-of-type(#{$x + 1}) {
+                        left: $cell-size * $x;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes cell-spawn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}

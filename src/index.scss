@@ -1,0 +1,15 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Solway', serif;
+    background: radial-gradient(#00dd88, #00eeaa)
+}
+
+
+#game-root {
+    @import './styles/_board.scss';
+}
