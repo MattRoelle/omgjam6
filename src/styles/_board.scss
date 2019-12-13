@@ -54,10 +54,7 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
 
                 &.typing {
                     box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.3);
-                    background: $cell-typing-color;
-                    p {
-                        filter: brightness(1.2);
-                    }
+                    filter: hue-rotate(-35deg) brightness(0.95) grayscale(0.05);
                 }
 
                 animation: none;

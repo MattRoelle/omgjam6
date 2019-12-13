@@ -107,6 +107,7 @@ class GameBoard {
             }
             if (this.isValidShapePlacement()) {
                 this.state = newState;
+                this.resetWord();
                 this.ffwdCursor();
             }
         } else {
@@ -138,6 +139,14 @@ class GameBoard {
         return false;
     }
 
+    resetWord() {
+        for(let i = 0; i < this.shape.len; i++) {
+            if (!this.reservedLetters[i]) {
+                this.word[i] = " ";
+            }
+        }
+    }
+
     type(letter) {
         if (this.state != GAME_STATES.TYPING) return;
 
@@ -148,10 +157,7 @@ class GameBoard {
 
         if (letter === "Escape") {
             this.cursorPos = 0;
-            for(let i = 0; i < this.shape.len; i++) {
-                if (this.reservedLetters[i]) continue;
-                this.word[i] = " ";
-            }
+            this.resetWord();
             this.updateBoard();
             this.changeState(GAME_STATES.POSITIONING);
             return;
