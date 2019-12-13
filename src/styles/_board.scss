@@ -1,15 +1,15 @@
-$cell-shadow-size: 0.06;
 $board-size: 10;
 $cell-size: (70vh/$board-size);
-$cell-border-radius: 0.21;
+$cell-border-radius: 0.1;
 
-$cell-shadow-color: #bbb;
 $board-color: #eee;
-$cell-color: #c8c8c8;
 
-$letter-background: #aa99ee;
-$letter-highlight-size: 0.18;
-$letter-highlight-color: darken($letter-background, 7%);
+$cell-color: #c8c8c8;
+$cell-under-shape-color: #f2f2f2;
+$cell-typing-color: #77f288;
+
+$letter-background: radial-gradient(#f3d569,#E3b563 88%);
+$letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
 
 .game-board {
     background: $board-color;
@@ -34,7 +34,6 @@ $letter-highlight-color: darken($letter-background, 7%);
             }
             .game-grid-cell {
                 position: absolute;
-                border-radius: $cell-size*$cell-border-radius;
                 top: 0;
                 width: $cell-size;
                 height: $cell-size;
@@ -42,60 +41,36 @@ $letter-highlight-color: darken($letter-background, 7%);
                 overflow: hidden;
 
                 background: $cell-color;
-                transition: all 100ms ease-in-out;
+                transition: all 200ms ease-in-out;
+                border-radius: $cell-size*$cell-border-radius;
 
                 &.under-shape {
-                    background: darken($cell-color, 20%);
+                    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.3);
+                    background: $cell-under-shape-color;
                     p {
-                        background: darken($letter-highlight-color, 8%);
-                        &:before {
-                            background: darken($letter-background, 8%);
-                        }
+                        filter: brightness(1.2);
                     }
                 }
 
                 &.typing {
-                    background: lighten($cell-color, 6%);
+                    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.3);
+                    background: $cell-typing-color;
                     p {
-                        background: lighten($letter-highlight-color, 4%);
-                        &:before {
-                            background: lighten($letter-background, 4%);
-                        }
+                        filter: brightness(1.2);
                     }
                 }
 
+                animation: none;
                 &.cursor {
-                    background: blue;
-                    p {
-                        background: lighten($letter-highlight-color, 4%);
-                        &:before {
-                            background: lighten($letter-background, 4%);
-                        }
-                    }
-                }
-
-                &:before {
-                    content: " ";
-                    display: block;
-                    position: absolute;
-                    width: 100%;
-                    height: $cell-size*$cell-shadow-size;
-                    background: $cell-shadow-color;
-                }
-
-                &:after {
-                    content: " ";
-                    display: block;
-                    position: absolute;
-                    width: $cell-size*$cell-shadow-size;
-                    height: 100%;
-                    background: $cell-shadow-color;
+                    animation: cursor-anim 250ms alternate infinite;
                 }
 
                 p {
+                    text-transform: uppercase;
                     color: black;
-                    background: $letter-highlight-color;
-                    font-size: $cell-size*3/4;
+                    background: $letter-background;
+                    font-weight: 700;
+                    font-size: $cell-size*1/2;
                     text-align: center;
                     position: relative;
                     width: $cell-size;
@@ -106,11 +81,13 @@ $letter-highlight-color: darken($letter-background, 7%);
                     top: 0;
                     left: 0;
                     z-index: 5;
-                    border-radius: $cell-size*$cell-border-radius;
                     overflow: hidden;
+                    border-radius: $cell-size*$cell-border-radius;
+                    box-shadow: inset -3px -3px 4px 4px rgba(0, 0, 0, 0.25);
 
                     transform: scale(0);
-                    transition: transform 100ms ease-in-out;
+                    transition: all 200ms ease-in-out;
+                    filter: grayscale(0);
                     &.visible {
                         transform: scale(1);
                     }
@@ -118,33 +95,6 @@ $letter-highlight-color: darken($letter-background, 7%);
                     span {
                         position: relative;
                         z-index:  50;
-                        top: -$cell-size*0.05;
-                    }
-
-                    &:before {
-                        content: " ";
-                        display: block;
-                        position: absolute;
-                        width: 100%;
-                        height: 100%;
-                        top: -$cell-size*$letter-highlight-size;
-                        left: -$cell-size*$letter-highlight-size;
-                        border-radius: $cell-size*0.1;
-                        background: $letter-background;
-                    }
-
-                    &:after {
-                        content: " ";
-                        display: block;
-                        position: absolute;
-                        width: $cell-size*0.2;
-                        height: $cell-size*0.4;
-                        transform: rotate(45deg);
-                        top: -$cell-size*0.2;
-                        left: 0;
-                        z-index: 50;
-                        border-radius: 100%;
-                        background: rgba(255, 255, 255, 0.2);
                     }
                 }
             }
@@ -163,11 +113,11 @@ $letter-highlight-color: darken($letter-background, 7%);
     }
 }
 
-@keyframes cell-spawn {
+@keyframes cursor-anim {
     from {
-        transform: scale(0);
+        filter: brightness(1);
     }
     to {
-        transform: scale(1);
+        filter: brightness(1.15);
     }
 }

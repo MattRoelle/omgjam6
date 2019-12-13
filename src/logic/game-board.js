@@ -30,17 +30,19 @@ class GameBoard {
             this.word.push(" ");
         }
 
+        this.shapeOffset = {
+            x: 0,
+            y: 0
+        };
+    }
+
+    clearCursor() {
         for(let x = 0; x < C.BOARD_SIZE; x++) {
             for(let y = 0; y < C.BOARD_SIZE; y++) {
                 const cell = this.getCell(x, y);
                 cell.cursor = false;
             }
         }
-
-        this.shapeOffset = {
-            x: 0,
-            y: 0
-        };
     }
 
     initBoard() {
@@ -102,11 +104,12 @@ class GameBoard {
             if (this.isValidShapePlacement()) {
                 this.state = newState;
                 this.ffwdCursor();
-                this.updateBoard();
             }
         } else {
             this.state = newState;
         }
+
+        this.updateBoard();
     }
 
     isValidShapePlacement() {
@@ -145,8 +148,8 @@ class GameBoard {
                 if (this.reservedLetters[i]) continue;
                 this.word[i] = " ";
             }
-            this.changeState(GAME_STATES.POSITIONING);
             this.updateBoard();
+            this.changeState(GAME_STATES.POSITIONING);
             return;
         }
 
@@ -207,6 +210,7 @@ class GameBoard {
             }
         }
 
+        return true;
         return word.length == 1 || this.dictionary.isValidWord(word);
     }
 
@@ -224,18 +228,100 @@ class GameBoard {
     submitWord() {
         if (this.validateBoard()) {
             this.wordsPlayed++;
+            this.findRects();
             this.getNextShape();
             this.changeState(GAME_STATES.POSITIONING);
         }
     }
 
+    findRects() {
+        const openTileCount = this.rows.map(r => r.filter(c => !c.letter).length).reduce((a, b) => a + b);
+        for(let x = 0; x < C.BOARD_SIZE; x++) {
+            for(let y = 0; y < C.BOARD_SIZE; y++) {
+                const cell = this.getCell(x, y);
+                if (!!cell.letter) continue;
+
+                // Check if cell is surrounded by letters
+                let cu, cd, cl, cr
+
+                for(let dx = 1; dx < C.BOARD_SIZE; dx++) {
+                    if (this.getCell(x + dx, y ).letter) cr = true;
+                    if (this.getCell(x - dx, y ).letter) cl = true;
+                }
+
+                for(let dy = 1; dy < C.BOARD_SIZE; dy++) {
+                    if (this.getCell(x, y + dy).letter) cu = true;
+                    if (this.getCell(x, y - dy).letter) cd = true;
+                }
+
+                if (cu && cd && cl && cr) {
+                    const ff = this.floodFill(x, y);
+                    if (ff.count < openTileCount) {
+                        this.processRect(ff);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    processRect(ff) {
+        for(let x = ff.minX; x <= ff.maxX; x++) {
+            for(let y = ff.minY; y <= ff.maxY; y++) {
+                const cell = this.getCell(x, y);
+                cell.letter = "";
+            }
+        }
+    }
+
+    floodFill(x, y, state) {
+        if (x < 0 || y < 0 || x >= C.BOARD_SIZE || y >= C.BOARD_SIZE) return; 
+
+        state = state || {
+            minX: x,
+            maxX: x,
+            minY: y,
+            maxY: y,
+            count: 0,
+            checked: {}
+        };
+
+        state.checked[x] = state.checked[x] || {};
+        if (state.checked[x][y]) return state;
+        state.checked[x][y] = true;
+
+        const cell = this.getCell(x, y);
+        if (!cell.letter) {
+            state.count++;
+        } else {
+            if (x < state.minX) state.minX = x;
+            if (x > state.maxX) state.maxX = x;
+
+            if (y < state.minY) state.minY = y;
+            if (y > state.maxY) state.maxY = y;
+
+            return state;
+        }
+
+        this.floodFill(x + 1, y, state);
+        this.floodFill(x - 1, y, state);
+        this.floodFill(x, y + 1, state);
+        this.floodFill(x, y - 1, state);
+
+        return state;
+    }
+
     updateBoard() {
+        this.clearCursor();
+
         for(let i = 0; i < this.shape.len; i++) {
             const cellPos = this.shape.getCellPos(i);
             const cell = this.getCell(cellPos.x - this.shapeOffset.x, cellPos.y - this.shapeOffset.y);
-            cell.letter = this.word[i].trim();
-            if (i == this.cursorPos) {
-                cell.cursor = true;
+            if (this.state == GAME_STATES.TYPING) {
+                cell.letter = this.word[i].trim();
+                if (i == this.cursorPos) {
+                    cell.cursor = true;
+                }
             }
         }
     }
