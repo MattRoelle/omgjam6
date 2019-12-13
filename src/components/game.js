@@ -8,6 +8,18 @@ import wordsTxt from "../words.txt";
 
 Vue.component("game", {
     template: `
+    <div class="word-game" v-bind:data-theme="((game.wordsPlayed + startingColorOffset)% 11) + 1">
+        <div class="game-header">
+            <div class="game-header-title">
+                <h1>Lorum Ipsum</h1>
+                <h2>By Matt Roelle<br />For OMGJAM6</h2>
+            </div>
+            <div class="game-action-bar">
+                <p>WORDS PLAYED: <span class="data-point">{{ game.wordsPlayed }}</span></p>
+                <p>SCORE: <span class="data-point">1272</span></p>
+                <p><span class="data-point"><i class="fas fa-sync-alt"></i></span></p>
+            </div>
+        </div>
         <div class="game-board">
             <div class="game-grid">
                 <div class="game-grid-row" v-for="row in game.rows">
@@ -19,11 +31,13 @@ Vue.component("game", {
                 </div>
             </div>
         </div>
+    </div>
     `,
     data() {
         return {
             boardSz: C.BOARD_SIZE,
-            game: new GameBoard(new Dictionary(wordsTxt))
+            game: new GameBoard(new Dictionary(wordsTxt)),
+            startingColorOffset: Math.floor(Math.random()*11),
         };
     },
     mounted() {
@@ -41,6 +55,7 @@ Vue.component("game", {
             let dx = 0, dy = 0;
 
             switch(ev.key) {
+                case 'q': this.game.wordsPlayed++; return;
                 case 'w': dy = 1; break;
                 case 's': dy = -1; break;
                 case 'a': dx = 1; break;

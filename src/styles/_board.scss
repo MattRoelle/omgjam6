@@ -1,23 +1,136 @@
 $board-size: 10;
-$cell-size: (70vh/$board-size);
+$cell-size: (75vh/$board-size);
 $cell-border-radius: 0.1;
 
 $board-color: #eee;
 
 $cell-color: #c8c8c8;
-$cell-under-shape-color: #f2f2f2;
+$cell-under-shape-color: #eee;
 $cell-typing-color: #77f288;
 
-$letter-background: radial-gradient(#f3d569,#E3b563 88%);
+$base-color: darken(#f3d569, 9%);
+
+$themes:       $base-color 
+    adjust-hue(darken(desaturate($base-color, 7%), 8%), 30deg)
+    adjust-hue(darken(desaturate($base-color, 4%), 6%), 60deg)
+    adjust-hue(darken(desaturate($base-color, 3%), 5%), 120deg)
+    adjust-hue($base-color, 150deg)
+    adjust-hue($base-color, 180deg)
+    adjust-hue($base-color, 210deg)
+    adjust-hue($base-color, 240deg)
+    adjust-hue($base-color, 270deg)
+    adjust-hue($base-color, 300deg)
+    adjust-hue($base-color, 330deg);
+
+$theme-change-time: 800ms;
+$base-letter-color: #f3d569;
+//$letter-background: radial-gradient(#f3d569,#E3b563 88%);
+$letter-background: radial-gradient($base-letter-color, adjust-hue(darken($base-letter-color, 7%), -1deg) 88%);
 $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
+
+@each $theme in $themes {
+    $i: index($themes, $theme);
+    [data-theme="#{$i}"] {
+        background: $theme;
+        box-shadow: inset 0px 0px 120px rgba(0, 0, 0, 0.12);
+        .game-header {
+            .game-action-bar {
+                color: $theme;
+        }
+        }
+        .game-board {
+            .game-grid-row {
+                .game-grid-cell {
+                    p {
+                        background: $theme;
+                    }
+                    &.cursor {
+                        p {
+
+                        }
+                    }
+                    &.typing {
+                        p {
+
+                        }
+                    }
+                    &.under-shape {
+                        p {
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.word-game {
+    margin: 0 auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: all $theme-change-time ease-in-out;
+}
+
+.game-header {
+    width: $cell-size*$board-size*1.04;
+    margin: 4vh auto 1vh auto;
+    .game-header-title {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        h1 {
+            color: white;
+            font-size: 56px;
+            width: 75%;
+            text-transform: uppercase;
+            text-align: left;
+        }
+        h2 {
+            width: 25%;
+            text-align: right;
+            color: white;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+        border-bottom: 2px dashed white;
+        margin-bottom: 8px;
+    }
+    .game-action-bar {
+        background: white;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        padding-left: 1%;
+        padding-right: 1%;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        transition: all $theme-change-time ease-in-out;
+        p {
+            font-size: 22px;
+            line-height: 32px;
+            font-weight: 400;
+            text-transform: uppercase;
+            .data-point {
+                display: inline-block;
+                margin: 0px 4px;
+                color: black;
+                font-weight: 700;
+            }
+        }
+    }
+}
 
 .game-board {
     background: $board-color;
     overflow: hidden;
     width: $cell-size*$board-size;
     height: $cell-size*$board-size;
-    margin: 15vh auto;
     box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
     border: $cell-size*1px/4px solid white;
     border-radius: $cell-size*0.2;
     position: relative;
@@ -45,10 +158,10 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
                 border-radius: $cell-size*$cell-border-radius;
 
                 &.under-shape {
-                    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.3);
+                    box-shadow: inset 0px 0px 5px 2px rgba(0, 0, 0, 0.1);
                     background: $cell-under-shape-color;
                     p {
-                        filter: brightness(1.2);
+                        filter: brightness(1.15);
                     }
                 }
 
@@ -64,8 +177,7 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
 
                 p {
                     text-transform: uppercase;
-                    color: black;
-                    background: $letter-background;
+                    color: white;
                     font-weight: 700;
                     font-size: $cell-size*1/2;
                     text-align: center;
@@ -80,10 +192,12 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
                     z-index: 5;
                     overflow: hidden;
                     border-radius: $cell-size*$cell-border-radius;
-                    box-shadow: inset -3px -3px 4px 4px rgba(0, 0, 0, 0.25);
+                    box-shadow: inset -2px -2px 8px 8px rgba(0, 0, 0, 0.1);
 
                     transform: scale(0);
-                    transition: all 200ms ease-in-out;
+                    transition: transform 200ms ease-in-out,
+                                background $theme-change-time ease-in-out,
+                                filter 200ms ease-in-out;
                     filter: grayscale(0);
                     &.visible {
                         transform: scale(1);
