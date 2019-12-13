@@ -23,7 +23,12 @@ class GameBoard {
     }
 
     getNextShape() {
-        this.shape = randomShape();
+        do {
+            this.shape = randomShape();
+        } while (this.lastShapeDirection == this.shape.direction);
+
+        this.lastShapeDirection = this.shape.direction;
+
         this.word = [];
         this.cursorPos = 0;
         for(let i = 0; i < this.shape.len; i++) {
@@ -46,7 +51,6 @@ class GameBoard {
     }
 
     initBoard() {
-        console.log(this.shape.len);
         let startingWord = this.dictionary.sample(this.shape.len);
 
         this.changeState(GAME_STATES.TYPING);
@@ -187,6 +191,7 @@ class GameBoard {
         const cell = this.getCell(x, y);
         let nextCell = null;
         let word =  "";
+        let hasNeighbor = false;
 
         if (!cell.letter) return true;
 
@@ -195,7 +200,14 @@ class GameBoard {
             if (!!lcell.letter) return true;
 
             let nextX = x;
+
             while(!!(nextCell = this.getCell(nextX++, y)).letter) {
+                if (
+                    !!this.getCell(nextCell.x, nextCell.y + 1).letter ||
+                    !!this.getCell(nextCell.x, nextCell.y - 1).letter
+                ) {
+                    hasNeighbor = true;
+                }
                 word += nextCell.letter;
             }
         }
@@ -206,12 +218,17 @@ class GameBoard {
 
             let nextY = y;
             while(!!(nextCell = this.getCell(x, nextY++)).letter) {
+                if (
+                    !!this.getCell(nextCell.x, nextCell.y + 1).letter ||
+                    !!this.getCell(nextCell.x, nextCell.y - 1).letter
+                ) {
+                    hasNeighbor = true;
+                }
                 word += nextCell.letter;
             }
         }
 
-        return true;
-        return word.length == 1 || this.dictionary.isValidWord(word);
+        return !hasNeighbor || word.length == 1 || this.dictionary.isValidWord(word);
     }
 
     validateBoard() {
