@@ -6,7 +6,7 @@ export class Dictionary {
 
         this.words = {};
 
-        const rawWords = this.wordsTxt.split('\n').map(w => w.trim().toLowerCase());
+        const rawWords = this.wordsTxt.split('\n').map(w => w.trim().toLowerCase().replace("%", "").replace("!", ""));
         for(let w of rawWords) {
             if (!this.words[w.length]) this.words[w.length] = [];
             this.words[w.length].push(w);

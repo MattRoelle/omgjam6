@@ -1,6 +1,7 @@
 const GAME_STATES = {
     POSITIONING: 1,
-    TYPING: 2
+    TYPING: 2,
+    WINNING: 3
 };
 
 const DIRECTIONS = {
@@ -10,5 +11,5 @@ const DIRECTIONS = {
 
 export {
     GAME_STATES,
-    DIRECTIONS
+    DIRECTIONS,
 };

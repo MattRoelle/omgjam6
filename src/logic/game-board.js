@@ -5,21 +5,34 @@ import { GAME_STATES, DIRECTIONS } from "./enums";
 class GameBoard {
     constructor(dictionary) {
         this.dictionary = dictionary;
-        this.state = GAME_STATES.POSITIONING;
 
-        this.rows = [];
-        for(let y = 0; y < C.BOARD_SIZE; y++) {
-            const row = [];
-            for(let x = 0; x < C.BOARD_SIZE; x++) {
-                row.push({ x, y, letter: null });
-            }
-            this.rows.push(row);
-        }
+        this.clearBoard();
 
         this.wordsPlayed = 0;
+        this.level = 0;
+        this.wordsToPlay =  1;
+        this.score = 0;
 
+        this.winLevel();
         this.getNextShape();
-        this.initBoard();
+    }
+
+    pushBoard() {
+        const data = [];
+        for(let row of this.rows) {
+            const newRow = [];
+            for(let c of row) {
+                newRow.push({ ...c });
+            }
+            data.push(newRow);
+        }
+        this.stack.push(data);
+    }
+
+    popBoard() {
+        if (this.stack.length > 0) {
+            this.rows = this.stack.pop();
+        }
     }
 
     getNextShape() {
@@ -50,7 +63,125 @@ class GameBoard {
         }
     }
 
-    initBoard() {
+    clearBoard() {
+        this.stack = [];
+        this.rows = [];
+        for(let y = 0; y < C.BOARD_SIZE; y++) {
+            const row = [];
+            for(let x = 0; x < C.BOARD_SIZE; x++) {
+                row.push({ x, y, letter: null });
+            }
+            this.rows.push(row);
+        }
+        this.pushBoard();
+    }
+
+    nextLevel() {
+        this.clearBoard();
+        const difficulty = this.level + 1;
+        this.state = GAME_STATES.POSITIONING;
+
+        //this.wordsToPlay = 1;
+        this.wordsPlayed = 0;
+        this.wordsToPlay = Math.floor(difficulty/2 + difficulty/3) 
+        this.wordsToPlay = Math.max(this.wordsToPlay, 1);
+        this.wordsToPlay = Math.min(this.wordsToPlay, 8);
+
+        const words = [];
+        let word;
+        let letters;
+        for(let i = 0; i < difficulty; i++) {
+            do {
+                word = this.dictionary.sample(Math.floor(Math.random()*3) + 3)
+                letters = word.split("");
+            } while (words.length > 0 && words[words.length - 1].split("").find(c => letters.indexOf(c) > -1) == null);
+            words.push(word);
+        }
+
+        const minX = 1;
+        const minY = 1;
+        const maxX = C.BOARD_SIZE - 1;
+        const maxY = C.BOARD_SIZE - 1;
+
+        let lastWord;
+        let direction = Math.random() > 0.5 ? DIRECTIONS.HORIZONTAL : DIRECTIONS.VERTICAL;
+
+        let wordsPlaced = 0;
+
+        for(let word of words) {
+            if (wordsPlaced > 8) break;
+
+            let x, y, overlappingIndices;
+
+            /*
+            if (!!lastWord) {
+                overlappingIndices = [];
+                const currentLetters = word.split("");
+                const lastLetters = lastWord.word.split("");
+
+                for(let i = 0; i < currentLetters.length; i++) {
+                    for(let j = 0; j < lastLetters.length; j++) {
+                        if (currentLetters[i] == lastLetters[j]) {
+                            overlappingIndices.push([i, j]);
+                        }
+                    }
+                }
+
+                if (overlappingIndices.length === 0) continue;
+            }
+            */
+
+            if (direction === DIRECTIONS.HORIZONTAL) {
+                x = minX + Math.floor(Math.random()*((maxX - word.length) - minX));
+                //if (!lastWord) {
+                    y = minY + Math.floor(Math.random()*(maxY - minY));
+                //} else {
+                    //y = lastWord.y + overlappingIndices[0][1];
+                //}
+            } else {
+                y = minY + Math.floor(Math.random()*((maxY - word.length) - minY));
+                //if (!lastWord) {
+                    x = minX + Math.floor(Math.random()*(maxX - minX));
+                //} else {
+                    //x = lastWord.x + overlappingIndices[0][1];
+                //}
+            }
+
+            this.pushBoard();
+
+            /*
+            const data = {
+                x,
+                y,
+                direction,
+                word
+            };
+            */
+
+            for(let i = 0; i < word.length; i++) {
+                const letter = word[i];
+                let wx, wy;
+                if (direction == DIRECTIONS.HORIZONTAL) {
+                    wx = x + i;
+                    wy = y;
+                } else {
+                    wx = x;
+                    wy = y + i;
+                }
+                this.getCell(wx, wy).letter = letter;
+            }
+
+            if (this.validateBoard()) {
+                wordsPlaced++;
+                //lastWord = data;
+                this.lastShapeDirection = direction;
+                direction = direction == DIRECTIONS.HORIZONTAL ? DIRECTIONS.VERTICAL : DIRECTIONS.HORIZONTAL;
+            } else {
+                this.popBoard();
+            }
+        }
+
+        /*
         let startingWord = this.dictionary.sample(this.shape.len);
 
         this.changeState(GAME_STATES.TYPING);
@@ -59,6 +190,7 @@ class GameBoard {
         }
 
         this.submitWord();
+        */
     }
     
     getCell(x, y) {
@@ -80,6 +212,11 @@ class GameBoard {
         );
     }
 
+    setShapePos(x, y) {
+        this.shapeOffset.x = this.shape.minX - x;
+        this.shapeOffset.y = this.shape.minY - y;
+    }
+
     moveShape(dx, dy) {
         if (this.state !== GAME_STATES.POSITIONING) return;
 
@@ -93,6 +230,8 @@ class GameBoard {
     }
 
     changeState(newState) {
+        if (this.state === GAME_STATES.WINNING) return;
+
         if (newState === GAME_STATES.TYPING) {
             this.reservedLetters = [];
             for(let i = 0; i < this.shape.len; i++) {
@@ -118,9 +257,11 @@ class GameBoard {
     }
 
     isValidShapePlacement() {
+        /*
         if (this.wordsPlayed === 0 || this.reservedLetters.indexOf(true) > -1) {
             return true;
         }
+        */
 
         for(let i = 0; i < this.shape.len; i++) {
             const cellPos = this.shape.getCellPos(i);
@@ -248,10 +389,34 @@ class GameBoard {
         return true;
     }
 
+    winLevel() {
+        this.level++;
+        this.state = GAME_STATES.WINNING;
+
+        const at = 20;
+
+        for(let x = 0; x < C.BOARD_SIZE; x++) {
+            for(let y = 0; y < C.BOARD_SIZE; y++) {
+                const c = this.getCell(x, y);
+                if (!!c.letter) {
+                    this.score += (3 * this.level);
+                }
+                c.win = true;
+            }
+        }
+
+        setTimeout(() => {
+            this.nextLevel();
+        }, 1800);
+    }
+
     submitWord() {
         if (this.validateBoard()) {
             this.wordsPlayed++;
-            this.findRects();
+            if (this.wordsPlayed >= this.wordsToPlay) {
+                this.winLevel();
+            }
+            //this.findRects();
             this.getNextShape();
             this.changeState(GAME_STATES.POSITIONING);
         }

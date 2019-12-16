@@ -1,4 +1,4 @@
-$board-size: 10;
+$board-size: 12;
 $cell-size: (75vh/$board-size);
 $cell-border-radius: 0.1;
 
@@ -8,21 +8,21 @@ $cell-color: #c8c8c8;
 $cell-under-shape-color: #eee;
 $cell-typing-color: #77f288;
 
-$base-color: darken(#f3d569, 9%);
+$base-color: darken(desaturate(#f3d569, 12%), 15%);
 
 $themes:       $base-color 
+    adjust-hue($base-color, 300deg)
+    adjust-hue($base-color, 240deg)
+    adjust-hue($base-color, 180deg)
+    adjust-hue(darken(desaturate($base-color, 8%), 15%), 140deg)
+    adjust-hue(darken(desaturate($base-color, 3%), 5%), 120deg)
     adjust-hue(darken(desaturate($base-color, 7%), 8%), 30deg)
     adjust-hue(darken(desaturate($base-color, 4%), 6%), 60deg)
-    adjust-hue(darken(desaturate($base-color, 3%), 5%), 120deg)
-    adjust-hue($base-color, 150deg)
-    adjust-hue($base-color, 180deg)
     adjust-hue($base-color, 210deg)
-    adjust-hue($base-color, 240deg)
     adjust-hue($base-color, 270deg)
-    adjust-hue($base-color, 300deg)
     adjust-hue($base-color, 330deg);
 
-$theme-change-time: 800ms;
+$theme-change-time: 5000ms;
 $base-letter-color: #f3d569;
 //$letter-background: radial-gradient(#f3d569,#E3b563 88%);
 $letter-background: radial-gradient($base-letter-color, adjust-hue(darken($base-letter-color, 7%), -1deg) 88%);
@@ -75,9 +75,19 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
     transition: all $theme-change-time ease-in-out;
 }
 
+.game-help-text {
+    width: $cell-size*$board-size*1.04;
+    margin: 1vh auto 1vh auto;
+    font-size: $cell-size*0.25;
+    color: white;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: 700;
+}
+
 .game-header {
     width: $cell-size*$board-size*1.04;
-    margin: 4vh auto 1vh auto;
+    margin: 2vh auto 1vh auto;
     .game-header-title {
         position: relative;
         display: flex;
@@ -85,7 +95,7 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
         align-items: center;
         h1 {
             color: white;
-            font-size: 56px;
+            font-size: $cell-size*1.1;
             width: 75%;
             text-transform: uppercase;
             text-align: left;
@@ -94,7 +104,7 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
             width: 25%;
             text-align: right;
             color: white;
-            font-size: 18px;
+            font-size: $cell-size*0.35;
             text-transform: uppercase;
         }
         border-bottom: 2px dashed white;
@@ -110,7 +120,7 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
         box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
         transition: all $theme-change-time ease-in-out;
         p {
-            font-size: 22px;
+            font-size: $cell-size*0.35;
             line-height: 32px;
             font-weight: 400;
             text-transform: uppercase;
@@ -119,6 +129,10 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
                 margin: 0px 4px;
                 color: black;
                 font-weight: 700;
+            }
+            &.game-action-bar-action {
+                font-weight: 900;
+                cursor: pointer;
             }
         }
     }
@@ -135,6 +149,21 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
     border-radius: $cell-size*0.2;
     position: relative;
     box-sizing: content-box;
+    > h1 {
+        position: absolute;
+        top: 30%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: $cell-size*1.5;
+        font-weight: 700;
+        z-index: 0;
+        opacity: 0;
+        transition: opacity 600ms ease-in-out;
+        &.visible {
+            opacity: 1;
+        }
+    }
     .game-grid {
         position: relative;
         .game-grid-row {
@@ -154,7 +183,7 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
                 overflow: hidden;
 
                 background: $cell-color;
-                transition: all 200ms ease-in-out;
+                transition: all 200ms ease-in-out, transform 800ms ease-in-out, opacity 800ms ease-in-out;
                 border-radius: $cell-size*$cell-border-radius;
 
                 &.under-shape {
@@ -173,6 +202,15 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
                 animation: none;
                 &.cursor {
                     animation: cursor-anim 250ms alternate infinite;
+                }
+
+                transform: scale(1);
+                opacity: 1;
+                &.win {
+                    //animation: win-anim 700ms ease-out;
+                    transition: all 900ms cubic-bezier(0.6, -0.28, 0.735, 0.045);
+                    transform: scale(0);
+                    opacity: 0;
                 }
 
                 p {
@@ -230,5 +268,47 @@ $letter-under-shape-background: radial-gradient(#ffffff,#f2f2f2 88%);
     }
     to {
         filter: brightness(1.15);
+    }
+}
+
+@keyframes win-anim {
+    0% {
+        transform: scale(1);
+    }
+
+    12% {
+        transform: scale(0.89);
+    }
+
+    24% {
+        transform: scale(0.56);
+    }
+
+    36% {
+        transform: scale(0.02);
+    }
+
+    54% {
+        transform: scale(0.25);
+    }
+
+    74% {
+        transform: scale(0.02);
+    }
+
+    82% {
+        transform: scale(0.06);
+    }
+
+    92% {
+        transform: scale(0.01);
+    }
+
+    96% {
+        transform: scale(0.02);
+    }
+
+    100% {
+        transform: scale(0);
     }
 }
